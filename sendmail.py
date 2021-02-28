@@ -11,34 +11,41 @@ context = ssl.create_default_context()
 
 balgoEmailAddress = "balgo.trader@gmail.com"
 
-with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-    server.login(balgoEmailAddress, password)
+def sendMail(traded):
+    print('Starting Email Summary')
+    with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
+        server.login(balgoEmailAddress, password)
 
-    sender_email = balgoEmailAddress
-    receiver_email = os.environ['MAIL_RECEIVER']
+        sender_email = balgoEmailAddress
+        receiver_email = os.environ['MAIL_RECEIVER']
 
-    message = MIMEMultipart("alternative")
-    message["Subject"] = "bAlgo Daily Update"
-    message["From"] = sender_email
-    message["To"] = receiver_email
+        message = MIMEMultipart("alternative")
+        message["Subject"] = "bAlgo Execution Summary"
+        message["From"] = sender_email
+        message["To"] = receiver_email
 
-    html = """\
-    <html>
-      <body>
-        <p>Hi,<br>
-           How are you?<br>
-           <a href="http://www.realpython.com">Real Python</a> 
-           has many great tutorials.
-        </p>
-      </body>
-    </html>
-    """
+        executionSummary = ""
+        for trade in traded:
+            executionSummary += "<p>" + trade + ' ' + str(traded[trade]) + ' units' + "</p>"
 
-    # Turn this into html MIMEText objects
-    part = MIMEText(html, "html")
+        html = """\
+        <html>
+          <body>
+            <p>Here is your daily bAlgo Execution Summary</p>
+            """ + executionSummary + """
+          </body>
+        </html>
+        """
 
-    # Add HTML part to MIMEMultipart message
-    # The email client will try to render the last part first
-    message.attach(part)
+        # Turn this into html MIMEText objects
+        part = MIMEText(html, "html")
 
-    server.sendmail(sender_email, receiver_email, message.as_string())
+        # Add HTML part to MIMEMultipart message
+        # The email client will try to render the last part first
+        message.attach(part)
+
+        server.sendmail(sender_email, receiver_email, message.as_string())
+    print('Ending Email Summary')
+
+# testing...
+#sendMail()
